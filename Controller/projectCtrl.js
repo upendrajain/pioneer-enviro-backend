@@ -75,7 +75,7 @@ Greetings of the day!
 Thank you for reaching out to us. To proceed further, we kindly request you to share the complete details of your project. This will help us better understand your requirements and provide you with the most accurate support.
 
 Please share the project description using the following link:
-http://localhost:5173/client-form?token=${jwt.sign(
+https://pioneer-enviro-2.firebaseapp.com/client-form?token=${jwt.sign(
         {
           project: newUser._id,
         },
@@ -358,7 +358,7 @@ const sendReminderEmail = async () => {
         ${missingFields.map(f => `- ${f}`).join("\n")}
 
         Please share the project description using the following link:
-        http://localhost:5173/client-form?token=${jwt.sign(
+        https://pioneer-enviro-2.firebaseapp.com/client-form?token=${jwt.sign(
         {
           project: project._id,
         },
