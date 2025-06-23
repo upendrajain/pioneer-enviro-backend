@@ -20,7 +20,12 @@ const roleRoute = require("./routes/roleRoute")
 app.use(express.urlencoded({extended:false}))
 app.use(express.json());
 
-app.use(cors())
+// app.use(cors())
+app.use(cors({
+  origin: "https://pioneer-enviro-2.web.app", // ✅ allow your frontend
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true // agar aap cookies ya auth headers bhej rahe ho
+}));
 dbconnect();
 
 app.use("/uploads", express.static("uploads"));
