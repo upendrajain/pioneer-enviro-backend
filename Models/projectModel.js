@@ -66,8 +66,8 @@ const ProjectModel = new mongoose.Schema({
     },
     BoardDir:[{name:{type:String}}],
     Background:{type:String},
-        staff_id:{type:mongoose.Types.ObjectId,ref:"StaffModel"},
-
+    status: { type: mongoose.Schema.Types.ObjectId, ref: 'status' },
+    staff_id:{type:mongoose.Types.ObjectId,ref:"StaffModel"},
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'clientModel', index: true }
     
 },

@@ -10,7 +10,12 @@ const staffModel = new mongoose.Schema(
     isActive: { type: Boolean, required: true },
     password: { type: String, required: true },
     Profile: { type: String },
-    
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'StaffModel', // or ref: 'User' if generic names
+      default: null, // admin ke liye null, staff ke liye admin ka id
+    }
+
   },
   {
     timestamps: true,

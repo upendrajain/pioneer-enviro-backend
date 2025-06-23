@@ -3,6 +3,7 @@ const settingModel = require("../Models/SettingModel");
 const jwt = require("jsonwebtoken");
 const nodemailer = require('nodemailer');
 const cron = require("node-cron");
+const statusModel = require("../Models/statusModel");
 
 const Checking = async (req, res, next) => {
   try {
@@ -47,6 +48,8 @@ const AddUser = async (req, res, next) => {
     }
 
     req.body.staff_id = req.staff_id;
+    const pendingStatus = await statusModel.findOne({ name: "pending" });
+    req.body.status = pendingStatus._id;
 
     const newUser = await projectModel.create(req.body);
 
@@ -75,7 +78,7 @@ Greetings of the day!
 Thank you for reaching out to us. To proceed further, we kindly request you to share the complete details of your project. This will help us better understand your requirements and provide you with the most accurate support.
 
 Please share the project description using the following link:
-https://pioneer-enviro-2.firebaseapp.com/client-form?token=${jwt.sign(
+https://pioneer-enviro-2.web.app/client-form?token=${jwt.sign(
         {
           project: newUser._id,
         },
@@ -175,7 +178,10 @@ const listUser = async (req, res, next) => {
     if (country) {
       filter["Address.Country"] = country;
     }
-    const data = await projectModel.find(filter).skip(page * count).limit(count).select("project_name user_id staff_id Address createdAt").populate('user_id staff_id', "name");
+    const data = await projectModel.find(filter).skip(page * count).limit(count).select("project_name user_id staff_id Address createdAt").populate('user_id staff_id', "name").populate('Address.Country', 'name')
+  .populate('Address.State', 'name')
+  .populate('Address.City', 'name')
+  .populate('status','name');
     res.json({
       error: false,
       message: "Data fetched successfully",
@@ -192,7 +198,8 @@ const listUser = async (req, res, next) => {
 
 const listUserById = async (req, res, next) => {
   try {
-    const { token } = req.query;
+    const { token }= req.query;
+    console.log(token)
     const decoded = jwt.verify(token, "project_id");
     const projectId = decoded.project;
     const data = await projectModel.findById(projectId).populate('user_id staff_id', "name");
@@ -210,6 +217,54 @@ const listUserById = async (req, res, next) => {
     })
   }
 }
+
+const projectDetailsById = async (req, res, next) => {
+  try {
+    const { token }= req.query;
+    // const decoded = jwt.verify(token, "project_id");
+    // const projectId = decoded.project;
+    const data = await projectModel.findById(token).populate('user_id staff_id', "name");
+    console.log(data);
+    res.json({
+      error: false,
+      message: "Data fetched successfully",
+      data
+    })
+  }
+  catch (error) {
+    res.json({
+      error: true,
+      message: error.message
+    })
+  }
+}
+
+const deleteProjectById = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const data = await projectModel.findByIdAndDelete(projectId);
+
+    if (!data) {
+      return res.status(404).json({
+        error: true,
+        message: "Project not found",
+      });
+    }
+
+    res.json({
+      error: false,
+      message: "Data deleted successfully",
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: true,
+      message: error.message,
+    });
+  }
+};
+
 
 
 const updateProjectDetailsByMember = async (req, res, next) => {
@@ -239,6 +294,44 @@ const updateProjectDetailsByMember = async (req, res, next) => {
     });
   }
 };
+
+const updateProjectDetailsByStaff = async (req, res) => {
+  try {
+    const{ projectId } = req.params;
+    const { formData } = req.body;
+
+    const project = await projectModel.findById(projectId);
+    if (!project) {
+      return res.status(401).json({
+        error: true,
+        message: "Session expired or project not found.",
+      });
+    }
+
+    // Add staff_id to formData
+    const updatedData = {
+      ...formData,
+      staff_id: req.staff_id,
+    };
+
+    await projectModel.findByIdAndUpdate(
+      projectId,
+      { $set: updatedData },
+      { new: true }
+    );
+
+    res.json({
+      error: false,
+      message: "Project details updated successfully.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: true,
+      message: error.message,
+    });
+  }
+};
+
 
 const getIncompleteFields = (project) => {
   const missingFields = [];
@@ -358,7 +451,7 @@ const sendReminderEmail = async () => {
         ${missingFields.map(f => `- ${f}`).join("\n")}
 
         Please share the project description using the following link:
-        https://pioneer-enviro-2.firebaseapp.com/client-form?token=${jwt.sign(
+        https://pioneer-enviro-2.web.app/client-form?token=${jwt.sign(
         {
           project: project._id,
         },
@@ -408,5 +501,8 @@ module.exports = {
   Checking,
   listUser,
   updateProjectDetailsByMember,
-  listUserById
+  listUserById,
+  projectDetailsById,
+  deleteProjectById,
+  updateProjectDetailsByStaff
 }

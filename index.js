@@ -14,13 +14,16 @@ const stateRoute = require("./routes/stateRoute");
 const cityRoute = require("./routes/cityRoute");
 const statusRoute = require("./routes/statusRoute");
 const projectIssueRoute = require("./routes/projectIssueRoute");
-const dashboardRoute = require("./routes/dashboardRoute")
+const dashboardRoute = require("./routes/dashboardRoute");
+const roleRoute = require("./routes/roleRoute")
 
 app.use(express.urlencoded({extended:false}))
 app.use(express.json());
 
 app.use(cors())
 dbconnect();
+
+app.use("/uploads", express.static("uploads"));
 
 app.use("/api/staff", staffRoute);
 app.use("/api/setting", settingRoute);
@@ -32,6 +35,7 @@ app.use("/api/country", countryRoute);
 app.use("/api/status", statusRoute);
 app.use("/api/project-issue", projectIssueRoute);
 app.use("/api/dashboard", dashboardRoute);
+app.use("/api/role", roleRoute);
 
 app.listen(process.env.PORT, () => { console.log("Running on http://localhost:" + process.env.PORT) })
 
