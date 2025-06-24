@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const RoleModel = new mongoose.Schema({
     name: {

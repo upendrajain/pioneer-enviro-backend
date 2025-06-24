@@ -1,6 +1,6 @@
 const router = require("express").Router();
 
-const { getRole  } = require("../Controller/roleCtrl");
+const { getRole  } = require("../Controller/RoleCtrl");
 const { staffMiddleware } = require("../Middleware/authMiddleware")
 
 
