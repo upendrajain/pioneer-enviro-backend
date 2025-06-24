@@ -223,7 +223,7 @@ const projectDetailsById = async (req, res, next) => {
     const { token }= req.query;
     // const decoded = jwt.verify(token, "project_id");
     // const projectId = decoded.project;
-    const data = await projectModel.findById(token).populate('user_id staff_id', "name");
+    const data = await projectModel.findById(token).populate('user_id staff_id status', "name");
     console.log(data);
     res.json({
       error: false,
@@ -295,9 +295,47 @@ const updateProjectDetailsByMember = async (req, res, next) => {
   }
 };
 
+// const updateProjectDetailsByStaff = async (req, res) => {
+//   try {
+//     const{ projectId } = req.params;
+//     const { formData } = req.body;
+
+//     const project = await projectModel.findById(projectId);
+//     if (!project) {
+//       return res.status(401).json({
+//         error: true,
+//         message: "Session expired or project not found.",
+//       });
+//     }
+
+//     // Add staff_id to formData
+//     const updatedData = {
+//       ...formData,
+//       staff_id: req.staff_id,
+//     };
+
+//     await projectModel.findByIdAndUpdate(
+//       projectId,
+//       { $set: updatedData },
+//       { new: true }
+//     );
+
+//     res.json({
+//       error: false,
+//       message: "Project details updated successfully.",
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       error: true,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
 const updateProjectDetailsByStaff = async (req, res) => {
   try {
-    const{ projectId } = req.params;
+    const { projectId } = req.params;
     const { formData } = req.body;
 
     const project = await projectModel.findById(projectId);
@@ -308,9 +346,23 @@ const updateProjectDetailsByStaff = async (req, res) => {
       });
     }
 
-    // Add staff_id to formData
+    // 🟡 Step 1: Find status ID if status name is passed in formData
+    let statusId = null;
+    if (formData.status) {
+      const statusDoc = await statusModel.findOne({ name: formData.status });
+      if (!statusDoc) {
+        return res.status(400).json({
+          error: true,
+          message: "Invalid status provided.",
+        });
+      }
+      statusId = statusDoc._id;
+    }
+
+    // 🟢 Step 2: Prepare update object
     const updatedData = {
       ...formData,
+      status: statusId, // Replace status name with ObjectId
       staff_id: req.staff_id,
     };
 
@@ -331,7 +383,6 @@ const updateProjectDetailsByStaff = async (req, res) => {
     });
   }
 };
-
 
 const getIncompleteFields = (project) => {
   const missingFields = [];
